@@ -18,27 +18,41 @@ function App() {
 	const { Title } = Typography;
 	const { Option } = Select;
 	const { Dragger } = Upload;
+	const [uploadedFile, setUploadedFile] = useState();
 	const props = {
 		name: "file",
 		multiple: false,
-		accept: ".jpeg,.jpg,.png,.webp",
-		// action: "http://localhost:8000/test",
+		accept: "image/jpeg,image/png,image/jpg,image/webp",
+		// action: "https://www.mocky.io/v2/5cc8019d300000980a055e76",
 		onChange(info) {
 			const { status } = info.file;
-			if (status !== "uploading") {
-				console.log(info.file, info.fileList);
+			if (status === "uploading") {
+				// console.log(info.file, info.fileList);
+				console.log("uploading....");
 			}
 			if (status === "done") {
-				message.success(`${info.file.name} file uploaded successfully.`);
+				handlePreview(info.file);
+				// message.success(`${info.file.name} file uploaded successfully.`);
 			} else if (status === "error") {
 				message.error(`${info.file.name} file upload failed.`);
 			}
 		},
-		onDrop: (e) => {
-			console.log("Dropped files", e.dataTransfer.files);
-		},
+	};
+	const getBase64 = (file) => {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.readAsDataURL(file);
+			reader.onload = () => resolve(reader.result);
+			reader.onerror = (error) => reject(error);
+		});
 	};
 
+	const handlePreview = async (file) => {
+		if (!file.url && !file.preview) {
+			file.preview = await getBase64(file.originFileObj);
+			setUploadedFile(file.preview);
+		}
+	};
 	return (
 		<React.Fragment>
 			<Header className="header">
@@ -64,15 +78,33 @@ function App() {
 								</Select>
 							</div>
 							<Divider />
-							<Dragger {...props} showUploadList>
-								<p className="ant-upload-drag-icon">
-									<InboxOutlined />
-								</p>
-								<p className="ant-upload-text">
-									Click or drag file to this area to upload
-								</p>
-								<p className="ant-upload-hint">One file at a time</p>
-							</Dragger>
+							{!uploadedFile && (
+								<Dragger
+									{...props}
+									customRequest={({ file, onSuccess }) => {
+										setTimeout(() => {
+											onSuccess("ok");
+										}, 0);
+									}}
+									showUploadList={false}
+									// onPreview={handlePreview}
+								>
+									<p className="ant-upload-drag-icon">
+										<InboxOutlined />
+									</p>
+									<p className="ant-upload-text">
+										Click or drag file to this area to upload
+									</p>
+									<p className="ant-upload-hint">One file at a time</p>
+								</Dragger>
+							)}
+							{uploadedFile && (
+								<img
+									src={uploadedFile}
+									alt="Uploaded file"
+									className="uploaded-image"
+								/>
+							)}
 						</Col>
 						<Col lg={12} xs={24} className="text-col">
 							<Skeleton active />
