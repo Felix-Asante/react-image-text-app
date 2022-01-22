@@ -61,9 +61,12 @@ body {
 	height: 100%;
 }
 .uploaded-image {
-	min-width: 100%;
+	max-width: 90%;
 	max-height: 80%;
 	object-fit: contain;
+}
+.text {
+	margin-top: 15px;
 }
 .ant-btn-primary {
 	background: #52c41a !important;

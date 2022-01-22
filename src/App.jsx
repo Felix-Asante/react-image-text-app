@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	Layout,
 	Typography,
@@ -13,6 +13,7 @@ import {
 } from "antd";
 import { InboxOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import { CopyToClipboard } from "react-copy-to-clipboard";
+import { createWorker } from "tesseract.js";
 
 import "./App.css";
 function App() {
@@ -23,7 +24,8 @@ function App() {
 	const [uploadedFile, setUploadedFile] = useState();
 	const [copied, setCopied] = useState(false);
 	const [extractedText, setExtractedText] = useState("");
-	const [lang, setLang] = useState("en");
+	const [lang, setLang] = useState("eng");
+	const [recognizing, setRecognizing] = useState(false);
 	const props = {
 		name: "file",
 		multiple: false,
@@ -31,10 +33,10 @@ function App() {
 		// action: "https://www.mocky.io/v2/5cc8019d300000980a055e76",
 		onChange(info) {
 			const { status } = info.file;
-			if (status === "uploading") {
-				// console.log(info.file, info.fileList);
-				console.log("uploading....");
-			}
+			// if (status === "uploading") {
+			// 	// console.log(info.file, info.fileList);
+			// 	console.log("uploading....");
+			// }
 			if (status === "done") {
 				handlePreview(info.file);
 				// message.success(`${info.file.name} file uploaded successfully.`);
@@ -59,6 +61,33 @@ function App() {
 		}
 	};
 	const langHandler = (value) => setLang(value);
+	const worker = createWorker({
+		logger: (m) => {
+			const { status } = m;
+			if (status === "recognizing text") {
+				setRecognizing(true);
+			}
+		},
+	});
+
+	const convertImageToText = async () => {
+		await worker.load();
+		await worker.loadLanguage(lang);
+		await worker.initialize(lang);
+		const {
+			data: { text },
+		} = await worker.recognize(uploadedFile);
+
+		setExtractedText(text);
+		setRecognizing(false);
+		await worker.terminate();
+	};
+
+	useEffect(() => {
+		if (!uploadedFile) return;
+		convertImageToText();
+	}, [uploadedFile]);
+
 	return (
 		<React.Fragment>
 			<Header className="header">
@@ -79,8 +108,11 @@ function App() {
 							<div className="d-flex justify-between">
 								<Title level={5}>Upload Image</Title>
 								<Select defaultValue="English" onChange={langHandler}>
-									<Option value="en">English</Option>
-									<Option value="fr">French</Option>
+									<Option value="eng">English</Option>
+									<Option value="fra">French</Option>
+									<Option value="ara">Arabic</Option>
+									<Option value="deu">German</Option>
+									<Option value="spa">Spanish</Option>
 								</Select>
 							</div>
 							<Divider />
@@ -134,7 +166,10 @@ function App() {
 									</CopyToClipboard>
 								</div>
 							)}
-							<Skeleton active />
+							{recognizing && <Skeleton active />}
+							{!recognizing && extractedText && (
+								<div className="text">{extractedText}</div>
+							)}
 						</Col>
 					</Row>
 				</Content>
