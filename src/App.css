@@ -10,6 +10,9 @@ body {
 .justify-between {
 	justify-content: space-between;
 }
+.justify-end {
+	justify-content: end;
+}
 
 .header {
 	background-color: #fff;
@@ -61,4 +64,8 @@ body {
 	min-width: 100%;
 	max-height: 80%;
 	object-fit: contain;
+}
+.ant-btn-primary {
+	background: #52c41a !important;
+	border-color: #52c41a !important;
 }

@@ -9,8 +9,10 @@ import {
 	Upload,
 	Skeleton,
 	message,
+	Button,
 } from "antd";
-import { InboxOutlined } from "@ant-design/icons";
+import { InboxOutlined, CheckCircleOutlined } from "@ant-design/icons";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 
 import "./App.css";
 function App() {
@@ -19,6 +21,9 @@ function App() {
 	const { Option } = Select;
 	const { Dragger } = Upload;
 	const [uploadedFile, setUploadedFile] = useState();
+	const [copied, setCopied] = useState(false);
+	const [extractedText, setExtractedText] = useState("");
+	const [lang, setLang] = useState("en");
 	const props = {
 		name: "file",
 		multiple: false,
@@ -53,6 +58,7 @@ function App() {
 			setUploadedFile(file.preview);
 		}
 	};
+	const langHandler = (value) => setLang(value);
 	return (
 		<React.Fragment>
 			<Header className="header">
@@ -72,8 +78,8 @@ function App() {
 						<Col lg={12} xs={24} className="upload-col">
 							<div className="d-flex justify-between">
 								<Title level={5}>Upload Image</Title>
-								<Select defaultValue="English">
-									<Option value="eng">English</Option>
+								<Select defaultValue="English" onChange={langHandler}>
+									<Option value="en">English</Option>
 									<Option value="fr">French</Option>
 								</Select>
 							</div>
@@ -107,6 +113,27 @@ function App() {
 							)}
 						</Col>
 						<Col lg={12} xs={24} className="text-col">
+							{extractedText && (
+								<div className="d-flex justify-end">
+									<CopyToClipboard
+										text={extractedText}
+										onCopy={() => {
+											setCopied(true);
+											setTimeout(() => {
+												setCopied(false);
+											}, 2000);
+										}}
+									>
+										<Button
+											type="primary"
+											icon={copied && <CheckCircleOutlined />}
+										>
+											{!copied && "Copy text"}
+											{copied && "Text copied"}
+										</Button>
+									</CopyToClipboard>
+								</div>
+							)}
 							<Skeleton active />
 						</Col>
 					</Row>
